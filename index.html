@@ -280,7 +280,7 @@
 
   <!-- EDIT (admin only) -->
   <section id="edit-view">
-    <div class="edit-sub">Ces changements sont visibles par toute l'équipe dès l'enregistrement.</div>
+    <div class="edit-sub">Les changements sont enregistrés sur cet appareil.</div>
     <div id="edit-status" class="status-msg"></div>
     <div id="edit-form"></div>
     <button class="add-member-btn" id="add-member-btn">
@@ -289,7 +289,7 @@
     </button>
     <div class="save-bar">
       <button class="btn btn-ghost" id="edit-cancel-btn">Annuler</button>
-      <button class="btn btn-primary" id="edit-save-btn">Enregistrer pour l'équipe</button>
+      <button class="btn btn-primary" id="edit-save-btn">Enregistrer</button>
     </div>
   </section>
 
@@ -351,10 +351,10 @@
 
 <script>
 (function(){
-  let members = JSON.parse(document.getElementById("members-json").textContent);
+  const defaultMembers = JSON.parse(document.getElementById("members-json").textContent);
+  let members = defaultMembers;
   let draft = [];
-  let canEdit = false;
-  let artifactCap = null;
+  let canEdit = true;
 
   const COLOR_KEYS = ["blue","orange","pink","green","purple","teal"];
   const COLORS = {
@@ -581,30 +581,26 @@
   editBackBtn.addEventListener("click", () => showView("select"));
   editCancelBtn.addEventListener("click", () => showView("select"));
 
-  editSaveBtn.addEventListener("click", async () => {
-    if(!artifactCap){
-      editStatus.className = "status-msg err";
-      editStatus.textContent = "Sauvegarde indisponible pour le moment. Réessaie dans un instant.";
-      return;
-    }
+  editSaveBtn.addEventListener("click", () => {
     editSaveBtn.disabled = true;
     editSaveBtn.textContent = "Enregistrement…";
     const updatedMembers = readEditForm();
 
     try{
-      const html = buildFullDocument(updatedMembers);
-      await artifactCap.publish(html);
+      localStorage.setItem("staffPlanningMembers", JSON.stringify(updatedMembers));
       members = updatedMembers;
+
       editStatus.className = "status-msg ok";
-      editStatus.textContent = "Planning mis à jour pour toute l'équipe.";
+      editStatus.textContent = "Planning enregistré sur cet appareil.";
       renderRoster();
+
       setTimeout(() => showView("select"), 700);
     }catch(e){
       editStatus.className = "status-msg err";
-      editStatus.textContent = "Impossible d'enregistrer (droits insuffisants ou erreur réseau).";
+      editStatus.textContent = "Impossible d'enregistrer les modifications sur cet appareil.";
     }finally{
       editSaveBtn.disabled = false;
-      editSaveBtn.textContent = "Enregistrer pour l'équipe";
+      editSaveBtn.textContent = "Enregistrer";
     }
   });
 
@@ -638,22 +634,21 @@
   }
 
   /* ---------- Init ---------- */
+  try{
+    const saved = localStorage.getItem("staffPlanningMembers");
+    if(saved){
+      const parsed = JSON.parse(saved);
+      if(Array.isArray(parsed) && parsed.length) members = parsed;
+    }
+  }catch(e){}
+
+  adminOpenBtn.style.display = "inline-flex";
   renderRoster();
 
   try{
     const last = localStorage.getItem("staffPlanningLastId");
     if(last && members.some(m => m.id === last)) showMember(last);
   }catch(e){}
-
-  (async function initCaps(){
-    try{
-      const userCap = await claude.use("user");
-      canEdit = userCap ? (typeof userCap.canEdit === "function" ? userCap.canEdit() : false) : true;
-    }catch(e){ canEdit = true; }
-    adminOpenBtn.style.display = canEdit ? "inline-flex" : "none";
-
-    try{ artifactCap = await claude.use("artifact"); }catch(e){ artifactCap = null; }
-  })();
 })();
 </script>
 </body>
