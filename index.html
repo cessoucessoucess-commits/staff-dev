@@ -329,6 +329,12 @@
     <div class="gate-title">Connexion staff</div>
     <div class="gate-sub">Entre ton identifiant personnel et ton code PIN.</div>
     <input type="text" id="login-id" class="gate-input" placeholder="Identifiant (ex. azukashop)" autocomplete="username" autocapitalize="none">
+    <select id="login-role" class="gate-input" aria-label="Choisir son rôle">
+      <option value="">Choisir ton rôle</option>
+      <option value="Chef de projet">Chef de projet</option>
+      <option value="Scripteur">Scripteur</option>
+      <option value="Dev Builder">Dev Builder</option>
+    </select>
     <input type="password" id="login-pin" class="gate-input" placeholder="Code PIN" inputmode="numeric" autocomplete="current-password" maxlength="12">
     <div class="gate-error" id="login-error"></div>
     <button class="btn btn-primary" id="login-submit-btn" style="width:100%;">Se connecter</button>
@@ -1013,7 +1019,7 @@
   const announcementList=document.getElementById("announcement-list"), announcementForm=document.getElementById("announcement-form");
   const announcementTitle=document.getElementById("announcement-title"), announcementBody=document.getElementById("announcement-body"), announcementAdd=document.getElementById("announcement-add");
   const roleSelect=document.getElementById("role-select"), rolePerms=document.getElementById("role-perms");
-  const loginOverlay=document.getElementById("login-overlay"), loginId=document.getElementById("login-id"), loginPin=document.getElementById("login-pin"), loginError=document.getElementById("login-error"), loginSubmitBtn=document.getElementById("login-submit-btn"), logoutBtn=document.getElementById("logout-btn"), sessionChip=document.getElementById("session-chip");
+  const loginOverlay=document.getElementById("login-overlay"), loginId=document.getElementById("login-id"), loginRole=document.getElementById("login-role"), loginPin=document.getElementById("login-pin"), loginError=document.getElementById("login-error"), loginSubmitBtn=document.getElementById("login-submit-btn"), logoutBtn=document.getElementById("logout-btn"), sessionChip=document.getElementById("session-chip");
 
   const LOCAL_STAFF_ACCOUNTS={
     azukashop:{member_id:"azukashop",pseudo:"@azukashop",role:"Chef de projet",pin:"482913"},
@@ -1026,9 +1032,8 @@
   const defaultAnnouncements=[{title:"Bienvenue sur le planning",body:"Utilise cette zone pour les informations importantes de l’équipe.",date:new Date().toLocaleDateString("fr-FR")}];
   const permissions={
     "Chef de projet":["Modifier le planning","Gérer les candidatures","Publier des annonces","Voir les présences de toute l'équipe"],
-    "Responsable recrutement":["Gérer les candidatures","Voir les membres"],
-    "Responsable planning":["Modifier le planning","Publier des annonces","Voir les présences de toute l'équipe"],
-    "Membre":["Voir le planning","Déclarer sa présence"]
+    "Scripteur":["Voir le planning","Voir les tâches de développement","Déclarer sa présence"],
+    "Dev Builder":["Voir le planning","Voir les tâches de construction","Déclarer sa présence"]
   };
   function todayIso(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
   function getPresence(){try{const a=JSON.parse(localStorage.getItem("staffPresenceLocal")||"{}");return a[todayIso()]||{};}catch(e){return {};}}
@@ -1053,9 +1058,24 @@
   announcementAdd.addEventListener("click",()=>{const title=announcementTitle.value.trim(),body=announcementBody.value.trim();if(!title||!body)return;const a=getAnnouncements();a.push({title,body,date:new Date().toLocaleDateString("fr-FR")});saveAnnouncements(a);announcementTitle.value="";announcementBody.value="";renderAnnouncements();});
   function updateFeatureAccess(){const role=currentUser?currentUser.role:"";announcementForm.style.display=(role==="Chef de projet"||role==="Responsable planning")?"grid":"none";if(adminOpenBtn)adminOpenBtn.style.display=role==="Chef de projet"?"inline-flex":"none";}
   function showLoggedInUser(user){currentUser=user;canEdit=user.role==="Chef de projet";loginOverlay.style.display="none";gateOverlay.style.display="none";sessionChip.style.display="inline-flex";sessionChip.innerHTML=`👤 <b>${escapeHtml(user.pseudo)}</b> · ${escapeHtml(user.role)}`;logoutBtn.style.display="inline-flex";updateFeatureAccess();renderPresence();}
-  function clearSession(){currentUser=null;canEdit=false;try{sessionStorage.removeItem("staffSession");}catch(e){}sessionChip.style.display="none";logoutBtn.style.display="none";loginOverlay.style.display="flex";updateFeatureAccess();renderPresence();}
-  function loginStaff(){const identifier=(loginId.value||"").trim().toLowerCase(),pin=(loginPin.value||"").trim();loginError.textContent="";if(!identifier||!pin){loginError.textContent="Entre ton identifiant et ton code PIN.";return;}const account=LOCAL_STAFF_ACCOUNTS[identifier];if(!account||account.pin!==pin){loginError.textContent="Identifiant ou code PIN incorrect.";return;}const user={member_id:account.member_id,pseudo:account.pseudo,role:account.role};try{sessionStorage.setItem("staffSession",JSON.stringify(user));}catch(e){}showLoggedInUser(user);loginPin.value="";}
-  loginSubmitBtn.addEventListener("click",loginStaff);[loginId,loginPin].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter")loginStaff();}));logoutBtn.addEventListener("click",clearSession);
+  function clearSession(){currentUser=null;canEdit=false;try{sessionStorage.removeItem("staffSession");}catch(e){}loginId.value="";loginRole.value="";loginPin.value="";sessionChip.style.display="none";logoutBtn.style.display="none";loginOverlay.style.display="flex";updateFeatureAccess();renderPresence();}
+  function loginStaff(){
+    const identifier=(loginId.value||"").trim().toLowerCase();
+    const selectedRole=(loginRole.value||"").trim();
+    const pin=(loginPin.value||"").trim();
+    loginError.textContent="";
+    if(!identifier||!selectedRole||!pin){loginError.textContent="Choisis ton rôle et entre ton identifiant et ton code PIN.";return;}
+    const account=LOCAL_STAFF_ACCOUNTS[identifier];
+    if(!account||account.pin!==pin){loginError.textContent="Identifiant ou code PIN incorrect.";return;}
+    if(account.role!==selectedRole){loginError.textContent="Le rôle sélectionné ne correspond pas à ce compte.";return;}
+    const user={member_id:account.member_id,pseudo:account.pseudo,role:account.role};
+    try{sessionStorage.setItem("staffSession",JSON.stringify(user));}catch(e){}
+    showLoggedInUser(user);
+    loginPin.value="";
+  }
+  loginSubmitBtn.addEventListener("click",loginStaff);
+  [loginId,loginRole,loginPin].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter")loginStaff();}));
+  logoutBtn.addEventListener("click",clearSession);
   function restoreStaffSession(){try{const saved=sessionStorage.getItem("staffSession");if(!saved)return false;const user=JSON.parse(saved);if(!user||!LOCAL_STAFF_ACCOUNTS[user.member_id])return false;showLoggedInUser(user);return true;}catch(e){return false;}}
 
   /* Animations */
