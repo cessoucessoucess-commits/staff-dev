@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planning Staff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+    --glass: rgba(255,255,255,0.09);
+    --glass-strong: rgba(255,255,255,0.16);
+    --glass-border: rgba(255,255,255,0.22);
+    --glass-shine: rgba(255,255,255,0.5);
+    --hair: rgba(255,255,255,0.11);
+    --text: #ffffff;
+    --text-2: rgba(255,255,255,0.64);
+    --text-3: rgba(255,255,255,0.36);
+    --blue:#0A84FF; --orange:#FF9F0A; --pink:#FF375F;
+    --green:#30D158; --purple:#BF5AF2; --teal:#64D2FF;
+
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *,*::before,*::after{ box-sizing:inherit; -webkit-tap-highlight-color: transparent; }
+  html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
+  html,body{ margin:0; padding:0; min-height:100%; font-family: var(--font); color: var(--text); }
+
+  body{ background:#080b16; overflow-x:hidden; position:relative; }
+
+  .mesh{ position: fixed; inset: -25%; z-index: -1; filter: blur(90px) saturate(180%); }
+  .blob{ position:absolute; border-radius:50%; }
+  .b1{ width:62vmax; height:62vmax; top:-25%; left:-18%; background: radial-gradient(circle,#5b2bd6 0%,transparent 68%); opacity:0.9; animation: drift1 28s ease-in-out infinite alternate; }
+  .b2{ width:58vmax; height:58vmax; top:5%; right:-22%; background: radial-gradient(circle,#d631b0 0%,transparent 68%); opacity:0.85; animation: drift2 32s ease-in-out infinite alternate; }
+  .b3{ width:54vmax; height:54vmax; bottom:-28%; left:8%; background: radial-gradient(circle,#1f7ae0 0%,transparent 68%); opacity:0.85; animation: drift3 36s ease-in-out infinite alternate; }
+  .b4{ width:42vmax; height:42vmax; bottom:-14%; right:2%; background: radial-gradient(circle,#ff5f8f 0%,transparent 68%); opacity:0.75; animation: drift1 24s ease-in-out infinite alternate-reverse; }
+  .b5{ width:36vmax; height:36vmax; top:38%; left:32%; background: radial-gradient(circle,#22c7d6 0%,transparent 68%); opacity:0.55; animation: drift2 40s ease-in-out infinite alternate; }
+  @keyframes drift1{ from{ transform: translate(0,0) scale(1);} to{ transform: translate(7%,9%) scale(1.1);} }
+  @keyframes drift2{ from{ transform: translate(0,0) scale(1);} to{ transform: translate(-9%,7%) scale(0.93);} }
+  @keyframes drift3{ from{ transform: translate(0,0) scale(1);} to{ transform: translate(6%,-8%) scale(1.07);} }
+  @media (prefers-reduced-motion: reduce){ .blob{ animation:none !important; } }
+
+  .grain{
+    position: fixed; inset:0; z-index:-1; opacity:0.035; pointer-events:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap{ max-width: 640px; margin: 0 auto; padding: 0 18px 70px; position: relative; }
+
+  /* ---------- Nav bar ---------- */
+  .navbar{
+    position: sticky; top: 0; z-index: 20;
+    padding-top: calc(env(safe-area-inset-top,0px) + 18px);
+    padding-bottom: 14px;
+    margin: 0 -18px 24px;
+    background: rgba(8,11,22,0.5);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border-bottom: 1px solid var(--hair);
+  }
+  .navbar-inner{ padding: 0 18px; display:flex; align-items:center; justify-content: space-between; gap:10px; min-height: 30px; }
+  .nav-title{ font-weight: 800; font-size: 23px; letter-spacing: -0.02em; }
+  .nav-sub{ font-size: 12.5px; color: var(--text-2); margin-top: 2px; font-weight: 500; }
+  .nav-back{
+    background:none; border:none; color: var(--blue); font: inherit; font-size:16px; font-weight:500;
+    display:flex; align-items:center; gap:2px; cursor:pointer; padding:6px 4px 6px 0;
+  }
+  .nav-back:hover{ opacity:0.7; }
+
+  /* ---------- Glass card base ---------- */
+  .glass{
+    position: relative;
+    background: linear-gradient(165deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05));
+    border: 1px solid var(--glass-border);
+    border-radius: 26px;
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22);
+    overflow: hidden;
+  }
+  .glass::before{
+    content:""; position:absolute; top:0; left:12%; right:12%; height:1px;
+    background: linear-gradient(90deg, transparent, var(--glass-shine), transparent);
+    opacity:0.5;
+  }
+
+  /* ---------- Selection screen ---------- */
+  #select-view h2{ font-size: 13px; font-weight: 700; color: var(--text-2); margin: 4px 2px 12px; }
+  .roster{ display:flex; flex-direction: column; }
+  .row{
+    display:flex; align-items:center; gap: 14px; width:100%; text-align:left;
+    padding: 14px 16px; cursor:pointer; font: inherit; color: inherit; border:none; background:transparent;
+    border-bottom: 1px solid var(--hair);
+    transition: background .15s ease;
+  }
+  .row:last-child{ border-bottom:none; }
+  .row:hover{ background: rgba(255,255,255,0.06); }
+  .row:active{ background: rgba(255,255,255,0.1); }
+  .row:focus-visible{ outline: 2px solid var(--blue); outline-offset: -2px; }
+  .avatar{
+    flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight: 700; font-size: 15px; color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 3px 10px rgba(0,0,0,0.3);
+  }
+  .avatar.open{ background: transparent !important; border: 1.5px dashed rgba(255,255,255,0.4); color: var(--text-2); box-shadow:none; }
+  .row-text{ flex:1; min-width:0; }
+  .row-name{ font-weight: 600; font-size: 15.5px; }
+  .row-role{ font-size: 12.5px; color: var(--text-2); margin-top: 1px; }
+  .chev{ color: var(--text-3); font-size: 18px; flex: 0 0 auto; font-weight:300; }
+
+  .admin-entry{ display:flex; justify-content:center; margin-top: 26px; }
+  .admin-link{
+    display:flex; align-items:center; gap:7px;
+    background: var(--glass-strong); border:1px solid var(--glass-border); color: var(--text-2);
+    font: inherit; font-size: 12.5px; font-weight: 600; padding: 10px 18px; border-radius: 24px;
+    cursor: pointer; backdrop-filter: blur(16px);
+  }
+  .admin-link:hover{ color: var(--text); background: rgba(255,255,255,0.22); }
+  .admin-link svg{ width:13px; height:13px; }
+
+  /* ---------- Detail view ---------- */
+  #detail-view, #edit-view{ display:none; }
+  .id-card{ padding: 22px 20px; margin-bottom: 18px; display:flex; align-items:center; gap:16px; }
+  .id-avatar{
+    width: 58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:20px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 5px 16px rgba(0,0,0,0.35);
+    flex: 0 0 auto;
+  }
+  .id-name{ font-weight: 800; font-size: 20px; letter-spacing: -0.01em; }
+  .id-role{ font-size: 13px; color: var(--text-2); margin-top: 2px; font-weight:500; }
+  .id-status{ margin-left:auto; font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; padding: 5px 11px; border-radius: 20px; white-space: nowrap; }
+
+  .segmented{ display:flex; padding: 4px; margin-bottom: 18px; gap: 4px; }
+  .seg-btn{
+    flex:1; text-align:center; padding: 10px 6px; border-radius: 18px; border:none;
+    background: transparent; color: var(--text-2); font: inherit; font-size: 13px; font-weight: 600;
+    cursor:pointer; transition: background .18s ease, color .18s ease;
+  }
+  .seg-btn.active{ background: rgba(255,255,255,0.24); color: var(--text); box-shadow: 0 3px 12px rgba(0,0,0,0.22); }
+
+  .day-panel{ padding: 22px; }
+  .day-time{
+    display:inline-block; font-size: 12px; font-weight: 700; color: var(--blue);
+    background: rgba(10,132,255,0.16); border: 1px solid rgba(10,132,255,0.35);
+    border-radius: 20px; padding: 4px 13px; margin-bottom: 13px;
+  }
+  .day-task{ font-size: 15.5px; line-height: 1.6; color: var(--text); }
+
+  .note{
+    margin-top: 18px; padding: 15px 17px; border-radius: 18px; font-size: 12.5px;
+    color: var(--text-2); line-height: 1.55; background: rgba(255,255,255,0.045);
+    border: 1px solid var(--hair);
+  }
+  .note b{ color: var(--text); }
+
+  footer{ text-align:center; font-size: 11px; color: var(--text-3); margin-top: 42px; font-weight:500; }
+
+  /* ---------- Edit view ---------- */
+  .edit-sub{ font-size: 12.5px; color: var(--text-2); margin: -6px 0 18px; }
+  .status-msg{ font-size: 12.5px; padding: 11px 15px; border-radius: 16px; margin-bottom: 16px; display:none; font-weight:500; }
+  .status-msg.ok{ display:block; background: rgba(48,209,88,0.14); border:1px solid rgba(48,209,88,0.35); color: var(--green); }
+  .status-msg.err{ display:block; background: rgba(255,55,95,0.14); border:1px solid rgba(255,55,95,0.35); color: var(--pink); }
+
+  .edit-card{ padding: 16px 16px 8px; margin-bottom: 16px; }
+  .edit-card-head{ display:flex; align-items:center; gap:10px; margin-bottom: 14px; }
+  .edit-card-head .avatar{ width:34px; height:34px; font-size:12.5px; }
+  .edit-card-title{ font-weight: 700; font-size: 15px; flex:1; }
+  .remove-btn{
+    background: rgba(255,55,95,0.12); border: 1px solid rgba(255,55,95,0.3); color: var(--pink);
+    width: 26px; height: 26px; border-radius: 50%; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size: 15px; line-height:1; flex:0 0 auto;
+  }
+  .remove-btn:hover{ background: rgba(255,55,95,0.22); }
+
+  .grouped{ border-radius: 15px; overflow:hidden; background: rgba(255,255,255,0.05); margin-bottom: 12px; }
+  .grouped-row{ padding: 10px 14px; border-bottom: 1px solid var(--hair); }
+  .grouped-row:last-child{ border-bottom:none; }
+  .grouped-row label{ display:block; font-size: 10.5px; color: var(--text-3); font-weight:600; margin-bottom: 4px; letter-spacing:0.02em; }
+  .grouped-row input[type="text"], .grouped-row textarea{
+    width:100%; background: transparent; border:none; color: var(--text); font: inherit;
+    font-size: 14.5px; padding:0; resize: vertical; font-weight: 500;
+  }
+  .grouped-row input[type="text"]::placeholder, .grouped-row textarea::placeholder{ color: var(--text-3); }
+  .grouped-row input[type="text"]:focus, .grouped-row textarea:focus{ outline:none; }
+  .grouped-row textarea{ line-height:1.4; }
+
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; padding: 11px 14px; }
+  .toggle-row span{ font-size: 13.5px; font-weight: 500; color: var(--text); }
+  .ios-switch{ position:relative; width:46px; height:28px; flex:0 0 auto; }
+  .ios-switch input{ opacity:0; width:100%; height:100%; margin:0; position:absolute; cursor:pointer; z-index:1; }
+  .ios-switch .track{ position:absolute; inset:0; border-radius:16px; background: rgba(255,255,255,0.2); transition: background .18s ease; }
+  .ios-switch .thumb{ position:absolute; top:2px; left:2px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition: transform .18s ease; }
+  .ios-switch input:checked + .track{ background: var(--green); }
+  .ios-switch input:checked ~ .thumb{ transform: translateX(18px); }
+
+  .slot-label{ font-size:11px; font-weight:700; color: var(--text-3); margin: 14px 2px 7px; letter-spacing:0.03em; }
+
+  .add-member-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+    background: rgba(255,255,255,0.04); border: 1.5px dashed rgba(255,255,255,0.28); color: var(--text-2);
+    font: inherit; font-size: 14px; font-weight: 600; padding: 16px; border-radius: 20px;
+    cursor:pointer; margin-bottom: 18px;
+  }
+  .add-member-btn:hover{ background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.4); }
+  .add-member-btn svg{ width:16px; height:16px; }
+
+  .save-bar{
+    position: sticky; bottom: 0; display:flex; gap:10px; padding: 16px 0 4px;
+    background: linear-gradient(to top, #080b16 55%, transparent);
+  }
+  .btn{ font: inherit; font-size: 14.5px; font-weight: 600; border-radius: 18px; padding: 13px 18px; cursor:pointer; flex:1; text-align:center; border:none; }
+  .btn-primary{ background: var(--blue); color:#fff; box-shadow: 0 4px 16px rgba(10,132,255,0.4); }
+  .btn-primary:hover{ filter: brightness(1.08); }
+  .btn-primary:disabled{ opacity:0.5; cursor: not-allowed; }
+  .btn-ghost{ background: var(--glass-strong); border:1px solid var(--glass-border); color: var(--text); flex: 0 0 auto; }
+  .btn-ghost:hover{ background: rgba(255,255,255,0.22); }
+
+  .icon-btn{ display:inline-flex; }
+</style>
+</head>
+<body>
+<div class="mesh"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div><div class="blob b5"></div></div>
+<div class="grain"></div>
+
+<div class="wrap">
+
+  <div class="navbar" id="navbar">
+    <div class="navbar-inner" id="nav-select">
+      <div>
+        <div class="nav-title">Planning</div>
+        <div class="nav-sub">Équipe de dev — projet Roblox</div>
+      </div>
+    </div>
+    <div class="navbar-inner" id="nav-detail" style="display:none;">
+      <button class="nav-back" id="back-btn">‹ Retour</button>
+      <div></div>
+    </div>
+    <div class="navbar-inner" id="nav-edit" style="display:none;">
+      <button class="nav-back" id="edit-back-btn">‹ Retour</button>
+      <div style="font-weight:700; font-size:15px;">Modifier</div>
+      <div style="width:36px;"></div>
+    </div>
+  </div>
+
+  <!-- SELECTION -->
+  <section id="select-view">
+    <h2>Choisis ton pseudo</h2>
+    <div class="glass roster" id="roster"></div>
+    <div class="admin-entry">
+      <button class="admin-link" id="admin-open-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        Modifier le planning
+      </button>
+    </div>
+  </section>
+
+  <!-- DETAIL -->
+  <section id="detail-view">
+    <div class="glass id-card">
+      <div class="id-avatar" id="d-avatar"></div>
+      <div>
+        <div class="id-name" id="d-name"></div>
+        <div class="id-role" id="d-role"></div>
+      </div>
+      <div class="id-status" id="d-status"></div>
+    </div>
+
+    <div class="glass segmented" id="day-tabs"></div>
+    <div class="glass day-panel">
+      <div class="day-time" id="d-time"></div>
+      <div class="day-task" id="d-task"></div>
+    </div>
+
+    <div class="note"><b>À savoir :</b> les horaires sont indicatifs et s'ajustent selon les disponibilités de chacun. La réunion du samedi reste le point fixe pour garder toute l'équipe synchronisée.</div>
+  </section>
+
+  <!-- EDIT (admin only) -->
+  <section id="edit-view">
+    <div class="edit-sub">Ces changements sont visibles par toute l'équipe dès l'enregistrement.</div>
+    <div id="edit-status" class="status-msg"></div>
+    <div id="edit-form"></div>
+    <button class="add-member-btn" id="add-member-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Ajouter un membre
+    </button>
+    <div class="save-bar">
+      <button class="btn btn-ghost" id="edit-cancel-btn">Annuler</button>
+      <button class="btn btn-primary" id="edit-save-btn">Enregistrer pour l'équipe</button>
+    </div>
+  </section>
+
+  <footer>Planning interne — non partagé en dehors du staff</footer>
+</div>
+
+<script type="application/json" id="members-json">
+[
+  {
+    "id": "azukashop", "pseudo": "@azukashop", "role": "Chef de projet", "vacant": false, "color": "blue",
+    "schedule": [
+      { "day": "Lun–Ven", "time": "18h30–21h00", "task": "Coordination générale, suivi d'avancement, retours à l'équipe" },
+      { "day": "Samedi", "time": "14h00–18h00", "task": "Réunion d'équipe + planification de la semaine suivante" },
+      { "day": "Dimanche", "time": "14h00–17h00", "task": "Session libre commune, puis bilan hebdomadaire du projet" }
+    ]
+  },
+  {
+    "id": "maxime2024", "pseudo": "@maxime2024", "role": "Scripteur", "vacant": false, "color": "orange",
+    "schedule": [
+      { "day": "Lun–Ven", "time": "18h30–21h00", "task": "Développement des scripts gameplay" },
+      { "day": "Samedi", "time": "14h00–18h00", "task": "Tests et correction de bugs" },
+      { "day": "Dimanche", "time": "14h00–17h00", "task": "Session libre : rattrapage, brainstorming, tests communs" }
+    ]
+  },
+  {
+    "id": "ultra_z", "pseudo": "@ultra_z.", "role": "Scripteur", "vacant": false, "color": "pink",
+    "schedule": [
+      { "day": "Lun–Ven", "time": "18h30–21h00", "task": "Développement des scripts système / UI" },
+      { "day": "Samedi", "time": "14h00–18h00", "task": "Optimisation des scripts" },
+      { "day": "Dimanche", "time": "14h00–17h00", "task": "Session libre : rattrapage, brainstorming, tests communs" }
+    ]
+  },
+  {
+    "id": "itzalfx", "pseudo": "@itzalfx", "role": "Dev Builder", "vacant": false, "color": "green",
+    "schedule": [
+      { "day": "Lun–Ven", "time": "18h30–21h00", "task": "Modélisation et construction des maps" },
+      { "day": "Samedi", "time": "14h00–18h00", "task": "Finitions des builds" },
+      { "day": "Dimanche", "time": "14h00–17h00", "task": "Session libre : rattrapage, brainstorming, tests communs" }
+    ]
+  },
+  {
+    "id": "cofondateur", "pseudo": "Co-fondateur", "role": "Poste en attente de candidature", "vacant": true, "color": "purple",
+    "schedule": [
+      { "day": "Lun–Ven", "time": "18h30–21h00", "task": "Coordination stratégique, prise de décisions — en plus du rôle technique conservé" },
+      { "day": "Samedi", "time": "14h00–18h00", "task": "Supervision globale du projet" },
+      { "day": "Dimanche", "time": "14h00–17h00", "task": "Session libre commune" }
+    ]
+  },
+  {
+    "id": "nouveau", "pseudo": "Nouveau membre", "role": "En attente de rôle (arrivée 13h)", "vacant": true, "color": "teal",
+    "schedule": [
+      { "day": "Lun–Ven", "time": "18h30–21h00", "task": "Mission à déterminer selon les compétences" },
+      { "day": "Samedi", "time": "14h00–18h00", "task": "Intégration à l'équipe" },
+      { "day": "Dimanche", "time": "14h00–17h00", "task": "Session libre commune" }
+    ]
+  }
+]
+</script>
+
+<script>
+(function(){
+  let members = JSON.parse(document.getElementById("members-json").textContent);
+  let draft = [];
+  let canEdit = false;
+  let artifactCap = null;
+
+  const COLOR_KEYS = ["blue","orange","pink","green","purple","teal"];
+  const COLORS = {
+    blue: "var(--blue)", orange: "var(--orange)", pink: "var(--pink)",
+    green: "var(--green)", purple: "var(--purple)", teal: "var(--teal)"
+  };
+
+  const roster = document.getElementById("roster");
+  const selectView = document.getElementById("select-view");
+  const detailView = document.getElementById("detail-view");
+  const editView = document.getElementById("edit-view");
+  const navSelect = document.getElementById("nav-select");
+  const navDetail = document.getElementById("nav-detail");
+  const navEdit = document.getElementById("nav-edit");
+  const backBtn = document.getElementById("back-btn");
+  const adminOpenBtn = document.getElementById("admin-open-btn");
+  const editBackBtn = document.getElementById("edit-back-btn");
+  const editCancelBtn = document.getElementById("edit-cancel-btn");
+  const editSaveBtn = document.getElementById("edit-save-btn");
+  const addMemberBtn = document.getElementById("add-member-btn");
+  const editForm = document.getElementById("edit-form");
+  const editStatus = document.getElementById("edit-status");
+
+  function escapeHtml(str){
+    const d = document.createElement("div");
+    d.textContent = str == null ? "" : str;
+    return d.innerHTML;
+  }
+  function initials(pseudo){
+    const clean = (pseudo || "").replace(/^@/, "").replace(/[\[\]]/g, "");
+    return clean.slice(0,2).toUpperCase() || "?";
+  }
+  function nextColor(list){
+    const used = list.map(m => m.color);
+    return COLOR_KEYS.find(c => !used.includes(c)) || COLOR_KEYS[list.length % COLOR_KEYS.length];
+  }
+  function genId(){ return "membre-" + Date.now().toString(36) + Math.floor(Math.random()*1000); }
+
+  function renderRoster(){
+    roster.innerHTML = "";
+    members.forEach(m => {
+      const row = document.createElement("button");
+      row.className = "row";
+      const avatarStyle = m.vacant ? "" : `background:${COLORS[m.color] || "var(--blue)"};`;
+      row.innerHTML = `
+        <div class="avatar ${m.vacant ? "open" : ""}" style="${avatarStyle}">${m.vacant ? "+" : escapeHtml(initials(m.pseudo))}</div>
+        <div class="row-text">
+          <div class="row-name">${escapeHtml(m.pseudo)}</div>
+          <div class="row-role">${escapeHtml(m.role)}</div>
+        </div>
+        <div class="chev">›</div>
+      `;
+      row.addEventListener("click", () => showMember(m.id));
+      roster.appendChild(row);
+    });
+  }
+
+  function showMember(id){
+    const m = members.find(x => x.id === id);
+    if(!m) return;
+
+    const av = document.getElementById("d-avatar");
+    av.textContent = m.vacant ? "+" : initials(m.pseudo);
+    av.style.background = m.vacant ? "transparent" : (COLORS[m.color] || "var(--blue)");
+    av.style.border = m.vacant ? "1.5px dashed rgba(255,255,255,0.4)" : "none";
+    av.style.color = m.vacant ? "var(--text-2)" : "#fff";
+    document.getElementById("d-name").textContent = m.pseudo;
+    document.getElementById("d-role").textContent = m.role;
+    const statusEl = document.getElementById("d-status");
+    statusEl.textContent = m.vacant ? "VACANT" : "ACTIF";
+    statusEl.style.color = m.vacant ? "var(--teal)" : "var(--green)";
+    statusEl.style.background = m.vacant ? "rgba(100,210,255,0.14)" : "rgba(48,209,88,0.14)";
+    statusEl.style.border = m.vacant ? "1px solid rgba(100,210,255,0.35)" : "1px solid rgba(48,209,88,0.35)";
+
+    const tabs = document.getElementById("day-tabs");
+    tabs.innerHTML = "";
+    m.schedule.forEach((s, i) => {
+      const b = document.createElement("button");
+      b.className = "seg-btn" + (i === 0 ? " active" : "");
+      b.textContent = s.day;
+      b.addEventListener("click", () => selectDay(m, i));
+      tabs.appendChild(b);
+    });
+    fillDayPanel(m, 0);
+
+    showView("detail");
+    try{ localStorage.setItem("staffPlanningLastId", id); }catch(e){}
+  }
+
+  function selectDay(m, idx){
+    document.querySelectorAll("#day-tabs .seg-btn").forEach((b, i) => b.classList.toggle("active", i === idx));
+    fillDayPanel(m, idx);
+  }
+  function fillDayPanel(m, idx){
+    const s = m.schedule[idx];
+    document.getElementById("d-time").textContent = s.time;
+    document.getElementById("d-task").textContent = s.task;
+  }
+
+  function showView(which){
+    selectView.style.display = which === "select" ? "block" : "none";
+    detailView.style.display = which === "detail" ? "block" : "none";
+    editView.style.display = which === "edit" ? "block" : "none";
+    navSelect.style.display = which === "select" ? "flex" : "none";
+    navDetail.style.display = which === "detail" ? "flex" : "none";
+    navEdit.style.display = which === "edit" ? "flex" : "none";
+    window.scrollTo(0,0);
+  }
+
+  backBtn.addEventListener("click", () => {
+    showView("select");
+    try{ localStorage.removeItem("staffPlanningLastId"); }catch(e){}
+  });
+
+  /* ---------- Admin / edit mode ---------- */
+
+  function buildEditForm(){
+    editForm.innerHTML = "";
+    editStatus.className = "status-msg";
+    editStatus.textContent = "";
+
+    draft.forEach((m, mi) => {
+      const card = document.createElement("div");
+      card.className = "glass edit-card";
+
+      const avatarStyle = m.vacant ? "" : `background:${COLORS[m.color] || "var(--blue)"};`;
+      const head = document.createElement("div");
+      head.className = "edit-card-head";
+      head.innerHTML = `
+        <div class="avatar ${m.vacant ? "open" : ""}" style="${avatarStyle}">${m.vacant ? "+" : escapeHtml(initials(m.pseudo))}</div>
+        <div class="edit-card-title">${escapeHtml(m.pseudo) || "Nouveau membre"}</div>
+      `;
+      const rmBtn = document.createElement("button");
+      rmBtn.className = "remove-btn";
+      rmBtn.type = "button";
+      rmBtn.innerHTML = "&times;";
+      rmBtn.title = "Retirer ce membre";
+      rmBtn.addEventListener("click", () => {
+        draft.splice(mi, 1);
+        buildEditForm();
+      });
+      head.appendChild(rmBtn);
+      card.appendChild(head);
+
+      const grouped1 = document.createElement("div");
+      grouped1.className = "grouped";
+      grouped1.innerHTML = `
+        <div class="grouped-row"><label>Pseudo</label><input type="text" data-mi="${mi}" data-field="pseudo" value="${escapeHtml(m.pseudo)}" placeholder="@pseudo"></div>
+        <div class="grouped-row"><label>Rôle</label><input type="text" data-mi="${mi}" data-field="role" value="${escapeHtml(m.role)}" placeholder="Ex. Scripteur"></div>
+        <div class="grouped-row toggle-row">
+          <span>Poste vacant / en attente</span>
+          <label class="ios-switch">
+            <input type="checkbox" data-mi="${mi}" data-field="vacant" ${m.vacant ? "checked" : ""}>
+            <span class="track"></span><span class="thumb"></span>
+          </label>
+        </div>
+      `;
+      card.appendChild(grouped1);
+
+      m.schedule.forEach((s, si) => {
+        const slotLabel = document.createElement("div");
+        slotLabel.className = "slot-label";
+        slotLabel.textContent = "CRÉNEAU " + (si + 1);
+        card.appendChild(slotLabel);
+
+        const grouped = document.createElement("div");
+        grouped.className = "grouped";
+        grouped.innerHTML = `
+          <div class="grouped-row"><label>Jour</label><input type="text" data-mi="${mi}" data-si="${si}" data-field="day" value="${escapeHtml(s.day)}"></div>
+          <div class="grouped-row"><label>Horaire</label><input type="text" data-mi="${mi}" data-si="${si}" data-field="time" value="${escapeHtml(s.time)}" placeholder="Ex. 18h30–21h00"></div>
+          <div class="grouped-row"><label>Tâche</label><textarea rows="2" data-mi="${mi}" data-si="${si}" data-field="task" placeholder="Ex. Tests et correction de bugs">${escapeHtml(s.task)}</textarea></div>
+        `;
+        card.appendChild(grouped);
+      });
+
+      editForm.appendChild(card);
+    });
+  }
+
+  function readEditForm(){
+    const updated = JSON.parse(JSON.stringify(draft));
+    editForm.querySelectorAll("[data-field]").forEach(el => {
+      const mi = parseInt(el.getAttribute("data-mi"), 10);
+      const field = el.getAttribute("data-field");
+      const siAttr = el.getAttribute("data-si");
+      if(siAttr === null){
+        if(field === "vacant"){ updated[mi].vacant = el.checked; }
+        else{ updated[mi][field] = el.value; }
+      }else{
+        const si = parseInt(siAttr, 10);
+        updated[mi].schedule[si][field] = el.value;
+      }
+    });
+    return updated;
+  }
+
+  adminOpenBtn.addEventListener("click", () => {
+    if(!canEdit){
+      alert("Seul le responsable du planning peut faire des modifications.");
+      return;
+    }
+    draft = JSON.parse(JSON.stringify(members));
+    buildEditForm();
+    showView("edit");
+  });
+
+  addMemberBtn.addEventListener("click", () => {
+    draft.push({
+      id: genId(),
+      pseudo: "@nouveau",
+      role: "",
+      vacant: true,
+      color: nextColor(draft),
+      schedule: [
+        { day: "Lun–Ven", time: "", task: "" },
+        { day: "Samedi", time: "", task: "" },
+        { day: "Dimanche", time: "", task: "" }
+      ]
+    });
+    buildEditForm();
+    editForm.lastElementChild.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
+
+  editBackBtn.addEventListener("click", () => showView("select"));
+  editCancelBtn.addEventListener("click", () => showView("select"));
+
+  editSaveBtn.addEventListener("click", async () => {
+    if(!artifactCap){
+      editStatus.className = "status-msg err";
+      editStatus.textContent = "Sauvegarde indisponible pour le moment. Réessaie dans un instant.";
+      return;
+    }
+    editSaveBtn.disabled = true;
+    editSaveBtn.textContent = "Enregistrement…";
+    const updatedMembers = readEditForm();
+
+    try{
+      const html = buildFullDocument(updatedMembers);
+      await artifactCap.publish(html);
+      members = updatedMembers;
+      editStatus.className = "status-msg ok";
+      editStatus.textContent = "Planning mis à jour pour toute l'équipe.";
+      renderRoster();
+      setTimeout(() => showView("select"), 700);
+    }catch(e){
+      editStatus.className = "status-msg err";
+      editStatus.textContent = "Impossible d'enregistrer (droits insuffisants ou erreur réseau).";
+    }finally{
+      editSaveBtn.disabled = false;
+      editSaveBtn.textContent = "Enregistrer pour l'équipe";
+    }
+  });
+
+  function buildFullDocument(updatedMembers){
+    const clone = document.documentElement.cloneNode(true);
+
+    const rosterEl = clone.querySelector("#roster"); if(rosterEl) rosterEl.innerHTML = "";
+    const tabsEl = clone.querySelector("#day-tabs"); if(tabsEl) tabsEl.innerHTML = "";
+    const editFormEl = clone.querySelector("#edit-form"); if(editFormEl) editFormEl.innerHTML = "";
+    const statusEl = clone.querySelector("#edit-status");
+    if(statusEl){ statusEl.className = "status-msg"; statusEl.textContent = ""; }
+
+    const selEl = clone.querySelector("#select-view");
+    const detEl = clone.querySelector("#detail-view");
+    const edEl = clone.querySelector("#edit-view");
+    if(selEl) selEl.style.display = "block";
+    if(detEl) detEl.style.display = "none";
+    if(edEl) edEl.style.display = "none";
+
+    const navSel = clone.querySelector("#nav-select");
+    const navDet = clone.querySelector("#nav-detail");
+    const navEd = clone.querySelector("#nav-edit");
+    if(navSel) navSel.style.display = "flex";
+    if(navDet) navDet.style.display = "none";
+    if(navEd) navEd.style.display = "none";
+
+    const dataEl = clone.querySelector("#members-json");
+    if(dataEl) dataEl.textContent = JSON.stringify(updatedMembers, null, 2);
+
+    return "<!DOCTYPE html>\n" + clone.outerHTML;
+  }
+
+  /* ---------- Init ---------- */
+  renderRoster();
+
+  try{
+    const last = localStorage.getItem("staffPlanningLastId");
+    if(last && members.some(m => m.id === last)) showMember(last);
+  }catch(e){}
+
+  (async function initCaps(){
+    try{
+      const userCap = await claude.use("user");
+      canEdit = userCap ? (typeof userCap.canEdit === "function" ? userCap.canEdit() : false) : true;
+    }catch(e){ canEdit = true; }
+    adminOpenBtn.style.display = canEdit ? "inline-flex" : "none";
+
+    try{ artifactCap = await claude.use("artifact"); }catch(e){ artifactCap = null; }
+  })();
+})();
+</script>
+</body>
+</html>
