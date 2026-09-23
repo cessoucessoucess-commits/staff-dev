@@ -220,11 +220,72 @@
   .btn-ghost:hover{ background: rgba(255,255,255,0.22); }
 
   .icon-btn{ display:inline-flex; }
+
+  /* ---------- Access gate ---------- */
+  #gate-overlay{
+    position: fixed; inset:0; z-index: 100; display:flex; align-items:center; justify-content:center;
+    padding: 24px; background: rgba(4,6,14,0.72); backdrop-filter: blur(6px);
+  }
+  .gate-card{ width:100%; max-width: 360px; padding: 30px 26px; text-align:center; }
+  .gate-icon{
+    width:52px; height:52px; border-radius:50%; margin: 0 auto 16px; display:flex; align-items:center; justify-content:center;
+    background: rgba(10,132,255,0.16); border:1px solid rgba(10,132,255,0.35); color: var(--blue);
+  }
+  .gate-icon svg{ width:22px; height:22px; }
+  .gate-title{ font-weight:800; font-size:19px; margin-bottom:6px; }
+  .gate-sub{ font-size:12.5px; color: var(--text-2); margin-bottom:20px; line-height:1.5; }
+  .gate-input{
+    width:100%; text-align:center; letter-spacing:0.08em; text-transform:uppercase;
+    background: rgba(255,255,255,0.07); border:1px solid var(--glass-border); color: var(--text);
+    font: inherit; font-size:15px; font-weight:700; padding:13px 14px; border-radius:16px; margin-bottom:12px;
+  }
+  .gate-input::placeholder{ letter-spacing:normal; text-transform:none; color: var(--text-3); font-weight:500; }
+  .gate-input:focus{ outline:none; border-color: var(--blue); }
+  .gate-error{ font-size:12px; color: var(--pink); margin: -4px 0 12px; min-height:15px; }
+
+  /* ---------- Apply overlay ---------- */
+  #apply-overlay{
+    position: fixed; inset:0; z-index: 90; display:none; align-items:flex-end; justify-content:center;
+    padding: 0; background: rgba(4,6,14,0.6); backdrop-filter: blur(4px);
+  }
+  #apply-overlay.open{ display:flex; }
+  .apply-sheet{ width:100%; max-width:640px; max-height:88vh; overflow-y:auto; border-radius: 26px 26px 0 0; padding: 22px 20px calc(env(safe-area-inset-bottom,0px) + 20px); }
+  .apply-head{ display:flex; align-items:center; gap:10px; margin-bottom: 4px; }
+  .apply-head h3{ margin:0; font-size:17px; font-weight:800; flex:1; }
+  .apply-close{ background: rgba(255,255,255,0.1); border:none; color: var(--text-2); width:28px; height:28px; border-radius:50%; font-size:16px; cursor:pointer; }
+  .apply-close:hover{ background: rgba(255,255,255,0.18); color:var(--text); }
+  .apply-sub{ font-size:12.5px; color: var(--text-2); margin: 2px 0 16px; line-height:1.5; }
+
+  .cand-list{ margin-top: 6px; }
+  .cand-card{ padding: 14px 16px; margin-bottom: 12px; }
+  .cand-name{ font-weight:700; font-size:14.5px; }
+  .cand-meta{ font-size:11.5px; color: var(--text-3); margin: 1px 0 8px; }
+  .cand-msg{ font-size:13px; color: var(--text-2); line-height:1.5; margin-bottom:12px; }
+  .cand-actions{ display:flex; gap:8px; }
+  .cand-actions .btn{ padding: 9px 14px; font-size:13px; }
+  .btn-accept{ background: rgba(48,209,88,0.16); border:1px solid rgba(48,209,88,0.4); color: var(--green); }
+  .btn-accept:hover{ background: rgba(48,209,88,0.26); }
+  .btn-reject{ background: rgba(255,55,95,0.12); border:1px solid rgba(255,55,95,0.3); color: var(--pink); }
+  .btn-reject:hover{ background: rgba(255,55,95,0.22); }
+  .cand-empty{ font-size:12.5px; color: var(--text-3); text-align:center; padding: 16px 0; }
 </style>
 </head>
 <body>
 <div class="mesh"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div><div class="blob b5"></div></div>
 <div class="grain"></div>
+
+<div id="gate-overlay">
+  <div class="glass gate-card">
+    <div class="gate-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div class="gate-title">Accès réservé au staff</div>
+    <div class="gate-sub">Entre le code d'accès communiqué par l'équipe pour consulter le planning.</div>
+    <input type="text" id="gate-input" class="gate-input" placeholder="Code d'accès" autocomplete="off" autocapitalize="characters">
+    <div class="gate-error" id="gate-error"></div>
+    <button class="btn btn-primary" id="gate-submit-btn" style="width:100%;">Entrer</button>
+  </div>
+</div>
 
 <div class="wrap">
 
@@ -250,7 +311,11 @@
   <section id="select-view">
     <h2>Choisis ton pseudo</h2>
     <div class="glass roster" id="roster"></div>
-    <div class="admin-entry">
+    <div class="admin-entry" style="flex-direction:column; gap:10px;">
+      <button class="admin-link" id="apply-open-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Postuler comme bêta-testeur
+      </button>
       <button class="admin-link" id="admin-open-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
         Modifier le planning
@@ -280,8 +345,13 @@
 
   <!-- EDIT (admin only) -->
   <section id="edit-view">
-    <div class="edit-sub">Les changements sont enregistrés sur cet appareil.</div>
+    <div class="edit-sub">Ces changements sont visibles par toute l'équipe dès l'enregistrement.</div>
     <div id="edit-status" class="status-msg"></div>
+
+    <div class="slot-label">CANDIDATURES BÊTA-TESTEUR</div>
+    <div class="cand-list" id="cand-list"></div>
+
+    <div class="slot-label">MEMBRES DE L'ÉQUIPE</div>
     <div id="edit-form"></div>
     <button class="add-member-btn" id="add-member-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -289,15 +359,39 @@
     </button>
     <div class="save-bar">
       <button class="btn btn-ghost" id="edit-cancel-btn">Annuler</button>
-      <button class="btn btn-primary" id="edit-save-btn">Enregistrer</button>
+      <button class="btn btn-primary" id="edit-save-btn">Enregistrer pour l'équipe</button>
     </div>
   </section>
 
   <footer>Planning interne — non partagé en dehors du staff</footer>
 </div>
 
+<!-- APPLY (beta tester application) -->
+<div id="apply-overlay">
+  <div class="glass apply-sheet">
+    <div class="apply-head">
+      <h3>Candidature bêta-testeur</h3>
+      <button class="apply-close" id="apply-close-btn">&times;</button>
+    </div>
+    <div class="apply-sub">Dis-nous qui tu es et pourquoi tu veux rejoindre l'équipe en tant que bêta-testeur. Le chef de projet reçoit ta candidature et te recontacte sur Roblox/Discord.</div>
+    <div id="apply-status" class="status-msg"></div>
+    <div class="grouped">
+      <div class="grouped-row"><label>Pseudo Roblox / Discord</label><input type="text" id="apply-pseudo" placeholder="@tonpseudo"></div>
+      <div class="grouped-row"><label>Disponibilités</label><input type="text" id="apply-dispo" placeholder="Ex. soirs de semaine, week-end..."></div>
+      <div class="grouped-row"><label>Pourquoi toi ?</label><textarea id="apply-message" rows="4" placeholder="Motivation, expérience de test, matériel utilisé..."></textarea></div>
+    </div>
+    <div class="save-bar" style="position:static; background:none; padding-top:4px;">
+      <button class="btn btn-ghost" id="apply-cancel-btn">Annuler</button>
+      <button class="btn btn-primary" id="apply-submit-btn">Envoyer ma candidature</button>
+    </div>
+  </div>
+</div>
+
 <script type="application/json" id="members-json">
-[
+{
+"accessCode": "ROBLOX-STAFF-26",
+"candidatures": [],
+"members": [
   {
     "id": "azukashop", "pseudo": "@azukashop", "role": "Chef de projet", "vacant": false, "color": "blue",
     "schedule": [
@@ -347,14 +441,19 @@
     ]
   }
 ]
+}
 </script>
 
 <script>
 (function(){
-  const defaultMembers = JSON.parse(document.getElementById("members-json").textContent);
-  let members = defaultMembers;
+  const siteData = JSON.parse(document.getElementById("members-json").textContent);
+  let members = siteData.members;
+  let candidatures = siteData.candidatures || [];
+  const ACCESS_CODE = (siteData.accessCode || "").trim().toUpperCase();
   let draft = [];
-  let canEdit = true;
+  let candidatureDraft = null;
+  let canEdit = false;
+  let artifactCap = null;
 
   const COLOR_KEYS = ["blue","orange","pink","green","purple","teal"];
   const COLORS = {
@@ -377,6 +476,22 @@
   const addMemberBtn = document.getElementById("add-member-btn");
   const editForm = document.getElementById("edit-form");
   const editStatus = document.getElementById("edit-status");
+  const candList = document.getElementById("cand-list");
+
+  const gateOverlay = document.getElementById("gate-overlay");
+  const gateInput = document.getElementById("gate-input");
+  const gateError = document.getElementById("gate-error");
+  const gateSubmitBtn = document.getElementById("gate-submit-btn");
+
+  const applyOverlay = document.getElementById("apply-overlay");
+  const applyOpenBtn = document.getElementById("apply-open-btn");
+  const applyCloseBtn = document.getElementById("apply-close-btn");
+  const applyCancelBtn = document.getElementById("apply-cancel-btn");
+  const applySubmitBtn = document.getElementById("apply-submit-btn");
+  const applyStatus = document.getElementById("apply-status");
+  const applyPseudo = document.getElementById("apply-pseudo");
+  const applyDispo = document.getElementById("apply-dispo");
+  const applyMessage = document.getElementById("apply-message");
 
   function escapeHtml(str){
     const d = document.createElement("div");
@@ -551,13 +666,63 @@
     return updated;
   }
 
+  let candDraft = [];
+
+  function renderCandidatures(){
+    candList.innerHTML = "";
+    if(candDraft.length === 0){
+      candList.innerHTML = `<div class="glass cand-empty">Aucune candidature en attente.</div>`;
+      return;
+    }
+    candDraft.forEach((c, ci) => {
+      const card = document.createElement("div");
+      card.className = "glass cand-card";
+      card.innerHTML = `
+        <div class="cand-name">${escapeHtml(c.pseudo)}</div>
+        <div class="cand-meta">${escapeHtml(c.dispo || "Disponibilités non précisées")} · reçue le ${escapeHtml(c.date || "")}</div>
+        <div class="cand-msg">${escapeHtml(c.message)}</div>
+        <div class="cand-actions">
+          <button class="btn btn-accept" data-ci="${ci}" data-act="accept">Accepter</button>
+          <button class="btn btn-reject" data-ci="${ci}" data-act="reject">Refuser</button>
+        </div>
+      `;
+      candList.appendChild(card);
+    });
+    candList.querySelectorAll("[data-act]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const ci = parseInt(btn.getAttribute("data-ci"), 10);
+        const act = btn.getAttribute("data-act");
+        const c = candDraft[ci];
+        if(act === "accept"){
+          draft.push({
+            id: genId(),
+            pseudo: c.pseudo,
+            role: "Bêta-testeur",
+            vacant: false,
+            color: nextColor(draft),
+            schedule: [
+              { day: "Lun–Ven", time: "", task: "Tests libres selon disponibilités" },
+              { day: "Samedi", time: "14h00–18h00", task: "Tests dirigés avec l'équipe" },
+              { day: "Dimanche", time: "14h00–17h00", task: "Session libre commune" }
+            ]
+          });
+          buildEditForm();
+        }
+        candDraft.splice(ci, 1);
+        renderCandidatures();
+      });
+    });
+  }
+
   adminOpenBtn.addEventListener("click", () => {
     if(!canEdit){
       alert("Seul le responsable du planning peut faire des modifications.");
       return;
     }
     draft = JSON.parse(JSON.stringify(members));
+    candDraft = JSON.parse(JSON.stringify(candidatures));
     buildEditForm();
+    renderCandidatures();
     showView("edit");
   });
 
@@ -581,37 +746,47 @@
   editBackBtn.addEventListener("click", () => showView("select"));
   editCancelBtn.addEventListener("click", () => showView("select"));
 
-  editSaveBtn.addEventListener("click", () => {
+  editSaveBtn.addEventListener("click", async () => {
+    if(!artifactCap){
+      editStatus.className = "status-msg err";
+      editStatus.textContent = "Sauvegarde indisponible pour le moment. Réessaie dans un instant.";
+      return;
+    }
     editSaveBtn.disabled = true;
     editSaveBtn.textContent = "Enregistrement…";
     const updatedMembers = readEditForm();
 
     try{
-      localStorage.setItem("staffPlanningMembers", JSON.stringify(updatedMembers));
+      const html = buildFullDocument(updatedMembers, candDraft);
+      await artifactCap.publish(html);
       members = updatedMembers;
-
+      candidatures = candDraft;
       editStatus.className = "status-msg ok";
-      editStatus.textContent = "Planning enregistré sur cet appareil.";
+      editStatus.textContent = "Planning mis à jour pour toute l'équipe.";
       renderRoster();
-
       setTimeout(() => showView("select"), 700);
     }catch(e){
       editStatus.className = "status-msg err";
-      editStatus.textContent = "Impossible d'enregistrer les modifications sur cet appareil.";
+      editStatus.textContent = "Impossible d'enregistrer (droits insuffisants ou erreur réseau).";
     }finally{
       editSaveBtn.disabled = false;
-      editSaveBtn.textContent = "Enregistrer";
+      editSaveBtn.textContent = "Enregistrer pour l'équipe";
     }
   });
 
-  function buildFullDocument(updatedMembers){
+  function buildFullDocument(updatedMembers, updatedCandidatures){
     const clone = document.documentElement.cloneNode(true);
 
     const rosterEl = clone.querySelector("#roster"); if(rosterEl) rosterEl.innerHTML = "";
     const tabsEl = clone.querySelector("#day-tabs"); if(tabsEl) tabsEl.innerHTML = "";
     const editFormEl = clone.querySelector("#edit-form"); if(editFormEl) editFormEl.innerHTML = "";
+    const candListEl = clone.querySelector("#cand-list"); if(candListEl) candListEl.innerHTML = "";
     const statusEl = clone.querySelector("#edit-status");
     if(statusEl){ statusEl.className = "status-msg"; statusEl.textContent = ""; }
+    const applyStatusEl = clone.querySelector("#apply-status");
+    if(applyStatusEl){ applyStatusEl.className = "status-msg"; applyStatusEl.textContent = ""; }
+    const applyOv = clone.querySelector("#apply-overlay"); if(applyOv) applyOv.classList.remove("open");
+    ["apply-pseudo","apply-dispo","apply-message"].forEach(id => { const el = clone.querySelector("#"+id); if(el) el.value = ""; });
 
     const selEl = clone.querySelector("#select-view");
     const detEl = clone.querySelector("#detail-view");
@@ -628,27 +803,114 @@
     if(navEd) navEd.style.display = "none";
 
     const dataEl = clone.querySelector("#members-json");
-    if(dataEl) dataEl.textContent = JSON.stringify(updatedMembers, null, 2);
+    if(dataEl){
+      dataEl.textContent = JSON.stringify({
+        accessCode: siteData.accessCode,
+        candidatures: updatedCandidatures,
+        members: updatedMembers
+      }, null, 2);
+    }
 
     return "<!DOCTYPE html>\n" + clone.outerHTML;
   }
 
-  /* ---------- Init ---------- */
+  /* ---------- Access gate ---------- */
+  function tryUnlock(){
+    const val = (gateInput.value || "").trim().toUpperCase();
+    if(!val){
+      gateError.textContent = "Entre un code pour continuer.";
+      return;
+    }
+    if(val === ACCESS_CODE){
+      gateError.textContent = "";
+      gateOverlay.style.display = "none";
+      try{ sessionStorage.setItem("staffPlanningUnlocked", "1"); }catch(e){}
+    }else{
+      gateError.textContent = "Code incorrect, réessaie.";
+      gateInput.value = "";
+      gateInput.focus();
+    }
+  }
+  gateSubmitBtn.addEventListener("click", tryUnlock);
+  gateInput.addEventListener("keydown", (e) => { if(e.key === "Enter") tryUnlock(); });
+
   try{
-    const saved = localStorage.getItem("staffPlanningMembers");
-    if(saved){
-      const parsed = JSON.parse(saved);
-      if(Array.isArray(parsed) && parsed.length) members = parsed;
+    if(sessionStorage.getItem("staffPlanningUnlocked") === "1"){
+      gateOverlay.style.display = "none";
     }
   }catch(e){}
 
-  adminOpenBtn.style.display = "inline-flex";
+  /* ---------- Candidature bêta-testeur ---------- */
+  function openApply(){
+    applyStatus.className = "status-msg";
+    applyStatus.textContent = "";
+    applyPseudo.value = "";
+    applyDispo.value = "";
+    applyMessage.value = "";
+    applySubmitBtn.disabled = false;
+    applySubmitBtn.textContent = "Envoyer ma candidature";
+    applyOverlay.classList.add("open");
+  }
+  function closeApply(){ applyOverlay.classList.remove("open"); }
+
+  applyOpenBtn.addEventListener("click", openApply);
+  applyCloseBtn.addEventListener("click", closeApply);
+  applyCancelBtn.addEventListener("click", closeApply);
+
+  applySubmitBtn.addEventListener("click", async () => {
+    const pseudo = applyPseudo.value.trim();
+    const message = applyMessage.value.trim();
+    if(!pseudo || !message){
+      applyStatus.className = "status-msg err";
+      applyStatus.textContent = "Merci de renseigner au moins ton pseudo et ta motivation.";
+      return;
+    }
+    const candidate = {
+      id: genId(),
+      pseudo, message,
+      dispo: applyDispo.value.trim(),
+      date: new Date().toLocaleDateString("fr-FR")
+    };
+
+    applySubmitBtn.disabled = true;
+    applySubmitBtn.textContent = "Envoi…";
+    const nextCandidatures = candidatures.concat([candidate]);
+
+    try{
+      if(!artifactCap) throw new Error("no-cap");
+      const html = buildFullDocument(members, nextCandidatures);
+      await artifactCap.publish(html);
+      candidatures = nextCandidatures;
+      applyStatus.className = "status-msg ok";
+      applyStatus.textContent = "Candidature envoyée au chef de projet !";
+      setTimeout(closeApply, 900);
+    }catch(e){
+      candidatures = nextCandidatures;
+      applyStatus.className = "status-msg err";
+      applyStatus.textContent = "Candidature enregistrée localement, mais elle n'a pas pu être transmise automatiquement à l'équipe. Préviens le chef de projet directement pour être sûr qu'elle soit prise en compte.";
+    }finally{
+      applySubmitBtn.disabled = false;
+      applySubmitBtn.textContent = "Envoyer ma candidature";
+    }
+  });
+
+  /* ---------- Init ---------- */
   renderRoster();
 
   try{
     const last = localStorage.getItem("staffPlanningLastId");
     if(last && members.some(m => m.id === last)) showMember(last);
   }catch(e){}
+
+  (async function initCaps(){
+    try{
+      const userCap = await claude.use("user");
+      canEdit = userCap ? (typeof userCap.canEdit === "function" ? userCap.canEdit() : false) : true;
+    }catch(e){ canEdit = true; }
+    adminOpenBtn.style.display = canEdit ? "inline-flex" : "none";
+
+    try{ artifactCap = await claude.use("artifact"); }catch(e){ artifactCap = null; }
+  })();
 })();
 </script>
 </body>
