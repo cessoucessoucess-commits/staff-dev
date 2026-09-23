@@ -268,11 +268,73 @@
   .btn-reject{ background: rgba(255,55,95,0.12); border:1px solid rgba(255,55,95,0.3); color: var(--pink); }
   .btn-reject:hover{ background: rgba(255,55,95,0.22); }
   .cand-empty{ font-size:12.5px; color: var(--text-3); text-align:center; padding: 16px 0; }
+
+  /* ---------- Team features ---------- */
+  .team-tools{display:grid;gap:14px;margin-top:18px}
+  .feature-card{padding:18px 18px 16px}
+  .feature-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .feature-icon{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.1);border:1px solid var(--glass-border);font-size:17px}
+  .feature-title{font-size:15px;font-weight:800;flex:1}
+  .feature-sub{font-size:11.5px;color:var(--text-2);line-height:1.45;margin-top:2px}
+  .presence-list{display:grid;gap:8px}
+  .presence-row{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:15px;background:rgba(255,255,255,.045);border:1px solid var(--hair)}
+  .presence-row .presence-name{flex:1;font-size:13px;font-weight:600}
+  .presence-status{font-size:10.5px;font-weight:700;padding:5px 9px;border-radius:14px}
+  .presence-status.present{color:var(--green);background:rgba(48,209,88,.12);border:1px solid rgba(48,209,88,.3)}
+  .presence-status.absent{color:var(--text-2);background:rgba(255,255,255,.06);border:1px solid var(--hair)}
+  .presence-date{font-size:10.5px;color:var(--text-3);margin-top:9px}
+  .presence-btn{border:1px solid rgba(48,209,88,.28);background:rgba(48,209,88,.10);color:var(--green);padding:7px 10px;border-radius:12px;font-size:10.5px;font-weight:800;cursor:pointer}
+  .presence-btn:disabled{opacity:.55;cursor:not-allowed}
+  .announcement-list{display:grid;gap:9px;margin-bottom:10px}
+  .announcement{padding:12px 13px;border-radius:15px;background:rgba(255,255,255,.05);border:1px solid var(--hair)}
+  .announcement-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .announcement-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 12px rgba(10,132,255,.65)}
+  .announcement-title{font-size:13px;font-weight:750;flex:1}
+  .announcement-date{font-size:10px;color:var(--text-3)}
+  .announcement-body{font-size:12.5px;color:var(--text-2);line-height:1.5}
+  .announcement-form{display:grid;gap:8px}
+  .mini-input,.mini-textarea{width:100%;border:1px solid var(--glass-border);border-radius:13px;background:rgba(255,255,255,.055);color:var(--text);padding:10px 11px;font:inherit;font-size:12.5px;outline:none}
+  .mini-textarea{resize:vertical;min-height:62px}
+  .mini-input:focus,.mini-textarea:focus{border-color:var(--blue)}
+  .role-perms{display:grid;gap:8px}
+  .perm-row{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:14px;background:rgba(255,255,255,.045)}
+  .perm-row span:first-child{flex:1;font-size:12.5px;font-weight:600}
+  .perm-tag{font-size:10px;color:var(--text-2);padding:4px 8px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid var(--hair)}
+  .role-select{width:100%;border:1px solid var(--glass-border);border-radius:13px;background:rgba(255,255,255,.07);color:var(--text);padding:10px 11px;font:inherit;font-size:12.5px;margin-bottom:9px}
+  .click-ripple{position:fixed;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.8);pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(.2);animation:clickRipple .48s ease-out forwards;box-shadow:0 0 18px rgba(10,132,255,.55)}
+  @keyframes clickRipple{to{transform:translate(-50%,-50%) scale(3.2);opacity:0}}
+  .click-pulse{animation:clickPulse .28s ease-out}
+  @keyframes clickPulse{50%{transform:scale(.985);filter:brightness(1.18)}}
+  @media(max-width:520px){.team-tools{gap:11px}.feature-card{padding:15px}}
+
+
+  .login-card{width:min(420px,calc(100vw - 30px));padding:26px;text-align:center}
+  #login-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(4,6,15,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  .login-help{font-size:10.5px;color:var(--text-3);margin-top:10px;line-height:1.4}
+  .session-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--glass-border);background:rgba(255,255,255,.06);border-radius:999px;font-size:11px;color:var(--text-2)}
+  .session-chip b{color:var(--text)}
+  .presence-self{outline:1px solid rgba(48,209,88,.22)}
+  .presence-self .presence-name::after{content:" · toi";color:var(--green);font-weight:700}
+
 </style>
 </head>
 <body>
 <div class="mesh"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div><div class="blob b5"></div></div>
 <div class="grain"></div>
+
+
+<div id="login-overlay">
+  <div class="glass login-card">
+    <div class="gate-icon">👤</div>
+    <div class="gate-title">Connexion staff</div>
+    <div class="gate-sub">Entre ton identifiant personnel et ton code PIN.</div>
+    <input type="text" id="login-id" class="gate-input" placeholder="Identifiant (ex. azukashop)" autocomplete="username" autocapitalize="none">
+    <input type="password" id="login-pin" class="gate-input" placeholder="Code PIN" inputmode="numeric" autocomplete="current-password" maxlength="12">
+    <div class="gate-error" id="login-error"></div>
+    <button class="btn btn-primary" id="login-submit-btn" style="width:100%;">Se connecter</button>
+    <div class="login-help">Ton identifiant et ton PIN sont personnels. Ne les partage pas.</div>
+  </div>
+</div>
 
 <div id="gate-overlay">
   <div class="glass gate-card">
@@ -294,6 +356,10 @@
       <div>
         <div class="nav-title">Planning</div>
         <div class="nav-sub">Équipe de dev — projet Roblox</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="session-chip" id="session-chip" style="display:none;"></div>
+        <button class="admin-link" id="logout-btn" style="display:none;">Déconnexion</button>
       </div>
     </div>
     <div class="navbar-inner" id="nav-detail" style="display:none;">
@@ -341,6 +407,55 @@
     </div>
 
     <div class="note"><b>À savoir :</b> les horaires sont indicatifs et s'ajustent selon les disponibilités de chacun. La réunion du samedi reste le point fixe pour garder toute l'équipe synchronisée.</div>
+  </section>
+
+
+  <!-- TEAM TOOLS -->
+  <section id="team-tools" class="team-tools">
+    <div class="glass feature-card">
+      <div class="feature-head">
+        <div class="feature-icon">🟢</div>
+        <div>
+          <div class="feature-title">Présence aujourd’hui</div>
+          <div class="feature-sub">Clique sur « Je suis présent » et entre le code commun.</div>
+        </div>
+      </div>
+      <div class="presence-list" id="presence-list"></div>
+      <div class="presence-date" id="presence-date"></div>
+    </div>
+
+    <div class="glass feature-card">
+      <div class="feature-head">
+        <div class="feature-icon">📌</div>
+        <div>
+          <div class="feature-title">Mur des annonces</div>
+          <div class="feature-sub">Infos importantes visibles directement par l’équipe.</div>
+        </div>
+      </div>
+      <div class="announcement-list" id="announcement-list"></div>
+      <div class="announcement-form" id="announcement-form" style="display:none;">
+        <input class="mini-input" id="announcement-title" maxlength="70" placeholder="Titre de l’annonce">
+        <textarea class="mini-textarea" id="announcement-body" maxlength="400" placeholder="Ex. Réunion décalée à 15h samedi"></textarea>
+        <button class="btn btn-primary" id="announcement-add">Publier l’annonce</button>
+      </div>
+    </div>
+
+    <div class="glass feature-card">
+      <div class="feature-head">
+        <div class="feature-icon">🔐</div>
+        <div>
+          <div class="feature-title">Rôles & permissions</div>
+          <div class="feature-sub">Les droits peuvent être séparés entre planning, recrutement et annonces.</div>
+        </div>
+      </div>
+      <select class="role-select" id="role-select">
+        <option>Chef de projet</option>
+        <option>Responsable recrutement</option>
+        <option>Responsable planning</option>
+        <option>Membre</option>
+      </select>
+      <div class="role-perms" id="role-perms"></div>
+    </div>
   </section>
 
   <!-- EDIT (admin only) -->
@@ -764,6 +879,9 @@
       editStatus.className = "status-msg ok";
       editStatus.textContent = "Planning mis à jour pour toute l'équipe.";
       renderRoster();
+      renderPresence();
+      renderAnnouncements();
+      updateFeatureAccess();
       setTimeout(() => showView("select"), 700);
     }catch(e){
       editStatus.className = "status-msg err";
@@ -833,12 +951,7 @@
   }
   gateSubmitBtn.addEventListener("click", tryUnlock);
   gateInput.addEventListener("keydown", (e) => { if(e.key === "Enter") tryUnlock(); });
-
-  try{
-    if(sessionStorage.getItem("staffPlanningUnlocked") === "1"){
-      gateOverlay.style.display = "none";
-    }
-  }catch(e){}
+  gateOverlay.style.display = "none";
 
   /* ---------- Candidature bêta-testeur ---------- */
   function openApply(){
@@ -894,23 +1007,78 @@
     }
   });
 
+
+  /* ---------- Team features + login local (GitHub Pages, sans Supabase) ---------- */
+  const presenceList=document.getElementById("presence-list"), presenceDate=document.getElementById("presence-date");
+  const announcementList=document.getElementById("announcement-list"), announcementForm=document.getElementById("announcement-form");
+  const announcementTitle=document.getElementById("announcement-title"), announcementBody=document.getElementById("announcement-body"), announcementAdd=document.getElementById("announcement-add");
+  const roleSelect=document.getElementById("role-select"), rolePerms=document.getElementById("role-perms");
+  const loginOverlay=document.getElementById("login-overlay"), loginId=document.getElementById("login-id"), loginPin=document.getElementById("login-pin"), loginError=document.getElementById("login-error"), loginSubmitBtn=document.getElementById("login-submit-btn"), logoutBtn=document.getElementById("logout-btn"), sessionChip=document.getElementById("session-chip");
+
+  const LOCAL_STAFF_ACCOUNTS={
+    azukashop:{member_id:"azukashop",pseudo:"@azukashop",role:"Chef de projet",pin:"482913"},
+    maxime2024:{member_id:"maxime2024",pseudo:"@maxime2024",role:"Scripteur",pin:"731604"},
+    ultra_z:{member_id:"ultra_z",pseudo:"@ultra_z.",role:"Scripteur",pin:"905271"},
+    itzalfx:{member_id:"itzalfx",pseudo:"@itzalfx",role:"Dev Builder",pin:"618435"}
+  };
+  const SHARED_PRESENCE_CODE="3579";
+  let currentUser=null;
+  const defaultAnnouncements=[{title:"Bienvenue sur le planning",body:"Utilise cette zone pour les informations importantes de l’équipe.",date:new Date().toLocaleDateString("fr-FR")}];
+  const permissions={
+    "Chef de projet":["Modifier le planning","Gérer les candidatures","Publier des annonces","Voir les présences de toute l'équipe"],
+    "Responsable recrutement":["Gérer les candidatures","Voir les membres"],
+    "Responsable planning":["Modifier le planning","Publier des annonces","Voir les présences de toute l'équipe"],
+    "Membre":["Voir le planning","Déclarer sa présence"]
+  };
+  function todayIso(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+  function getPresence(){try{const a=JSON.parse(localStorage.getItem("staffPresenceLocal")||"{}");return a[todayIso()]||{};}catch(e){return {};}}
+  function savePresence(p){try{const a=JSON.parse(localStorage.getItem("staffPresenceLocal")||"{}");a[todayIso()]=p;localStorage.setItem("staffPresenceLocal",JSON.stringify(a));}catch(e){}}
+  function renderPresence(){
+    const p=getPresence(); presenceList.innerHTML="";
+    members.filter(m=>!m.vacant).forEach(m=>{
+      const row=document.createElement("div"), isMe=!!currentUser&&m.id===currentUser.member_id; row.className="presence-row"+(isMe?" presence-self":"");
+      const name=document.createElement("div");name.className="presence-name";name.textContent=m.pseudo;
+      const status=document.createElement("div");status.className="presence-status "+(p[m.id]?"present":"absent");status.textContent=p[m.id]?"PRÉSENT":"PAS ENCORE";
+      const action=document.createElement("button");action.className="presence-btn";action.textContent=p[m.id]?"Présent ✓":"Je suis présent";action.disabled=!isMe||!!p[m.id];action.title=isMe?"Entre le code commun pour confirmer ta présence":"Connecte-toi avec le compte de ce membre";
+      action.addEventListener("click",()=>{const code=prompt("Code commun de présence :");if(code===null)return;if(code.trim()!==SHARED_PRESENCE_CODE){alert("Code incorrect.");return;}const next=getPresence();next[m.id]=true;savePresence(next);renderPresence();});
+      row.append(name,status,action);presenceList.appendChild(row);
+    });
+    presenceDate.textContent="Aujourd’hui · "+new Date().toLocaleDateString("fr-FR")+" · enregistré sur cet appareil";
+  }
+  function getAnnouncements(){try{const raw=localStorage.getItem("staffAnnouncements");return raw?JSON.parse(raw):defaultAnnouncements.slice();}catch(e){return defaultAnnouncements.slice();}}
+  function saveAnnouncements(a){try{localStorage.setItem("staffAnnouncements",JSON.stringify(a));}catch(e){}}
+  function renderAnnouncements(){const list=getAnnouncements();announcementList.innerHTML="";list.slice().reverse().forEach(a=>{const el=document.createElement("div");el.className="announcement";el.innerHTML=`<div class="announcement-top"><span class="announcement-dot"></span><div class="announcement-title">${escapeHtml(a.title)}</div><div class="announcement-date">${escapeHtml(a.date||"")}</div></div><div class="announcement-body">${escapeHtml(a.body)}</div>`;announcementList.appendChild(el);});}
+  function renderPermissions(){rolePerms.innerHTML="";(permissions[roleSelect.value]||[]).forEach(p=>{const row=document.createElement("div");row.className="perm-row";row.innerHTML=`<span>${escapeHtml(p)}</span><span class="perm-tag">Autorisé</span>`;rolePerms.appendChild(row);});}
+  roleSelect.addEventListener("change",renderPermissions);
+  announcementAdd.addEventListener("click",()=>{const title=announcementTitle.value.trim(),body=announcementBody.value.trim();if(!title||!body)return;const a=getAnnouncements();a.push({title,body,date:new Date().toLocaleDateString("fr-FR")});saveAnnouncements(a);announcementTitle.value="";announcementBody.value="";renderAnnouncements();});
+  function updateFeatureAccess(){const role=currentUser?currentUser.role:"";announcementForm.style.display=(role==="Chef de projet"||role==="Responsable planning")?"grid":"none";if(adminOpenBtn)adminOpenBtn.style.display=role==="Chef de projet"?"inline-flex":"none";}
+  function showLoggedInUser(user){currentUser=user;canEdit=user.role==="Chef de projet";loginOverlay.style.display="none";gateOverlay.style.display="none";sessionChip.style.display="inline-flex";sessionChip.innerHTML=`👤 <b>${escapeHtml(user.pseudo)}</b> · ${escapeHtml(user.role)}`;logoutBtn.style.display="inline-flex";updateFeatureAccess();renderPresence();}
+  function clearSession(){currentUser=null;canEdit=false;try{sessionStorage.removeItem("staffSession");}catch(e){}sessionChip.style.display="none";logoutBtn.style.display="none";loginOverlay.style.display="flex";updateFeatureAccess();renderPresence();}
+  function loginStaff(){const identifier=(loginId.value||"").trim().toLowerCase(),pin=(loginPin.value||"").trim();loginError.textContent="";if(!identifier||!pin){loginError.textContent="Entre ton identifiant et ton code PIN.";return;}const account=LOCAL_STAFF_ACCOUNTS[identifier];if(!account||account.pin!==pin){loginError.textContent="Identifiant ou code PIN incorrect.";return;}const user={member_id:account.member_id,pseudo:account.pseudo,role:account.role};try{sessionStorage.setItem("staffSession",JSON.stringify(user));}catch(e){}showLoggedInUser(user);loginPin.value="";}
+  loginSubmitBtn.addEventListener("click",loginStaff);[loginId,loginPin].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter")loginStaff();}));logoutBtn.addEventListener("click",clearSession);
+  function restoreStaffSession(){try{const saved=sessionStorage.getItem("staffSession");if(!saved)return false;const user=JSON.parse(saved);if(!user||!LOCAL_STAFF_ACCOUNTS[user.member_id])return false;showLoggedInUser(user);return true;}catch(e){return false;}}
+
+  /* Animations */
+  document.addEventListener("click",(e)=>{
+    const ripple=document.createElement("span");
+    ripple.className="click-ripple";
+    ripple.style.left=e.clientX+"px"; ripple.style.top=e.clientY+"px";
+    document.body.appendChild(ripple);
+    setTimeout(()=>ripple.remove(),520);
+    const target=e.target.closest("button,.glass,.row,.seg-btn,.admin-link,.btn,.presence-row");
+    if(target){target.classList.remove("click-pulse"); void target.offsetWidth; target.classList.add("click-pulse");}
+  },true);
+
   /* ---------- Init ---------- */
   renderRoster();
+  renderAnnouncements();
+  renderPermissions();
 
   try{
     const last = localStorage.getItem("staffPlanningLastId");
     if(last && members.some(m => m.id === last)) showMember(last);
   }catch(e){}
-
-  (async function initCaps(){
-    try{
-      const userCap = await claude.use("user");
-      canEdit = userCap ? (typeof userCap.canEdit === "function" ? userCap.canEdit() : false) : true;
-    }catch(e){ canEdit = true; }
-    adminOpenBtn.style.display = canEdit ? "inline-flex" : "none";
-
-    try{ artifactCap = await claude.use("artifact"); }catch(e){ artifactCap = null; }
-  })();
+  (function init(){const restored=restoreStaffSession();if(!restored)loginOverlay.style.display="flex";renderPresence();try{artifactCap=null;}catch(e){}})();
 })();
 </script>
 </body>
