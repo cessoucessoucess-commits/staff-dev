@@ -315,6 +315,12 @@
   .session-chip b{color:var(--text)}
   .presence-self{outline:1px solid rgba(48,209,88,.22)}
   .presence-self .presence-name::after{content:" · toi";color:var(--green);font-weight:700}
+  .account-generator{margin-top:14px;padding:16px;border:1px solid var(--glass-border);background:rgba(255,255,255,.06);border-radius:16px;}
+  .account-generator-title{font-weight:800;font-size:14px;margin-bottom:5px;}
+  .account-generator-sub{font-size:11px;color:var(--text-2);line-height:1.4;margin-bottom:11px;}
+  .generated-account{display:none;margin-top:12px;padding:12px;border-radius:12px;background:rgba(48,209,88,.09);border:1px solid rgba(48,209,88,.25);}
+  .generated-account b{font-size:13px;}
+  .generated-line{margin:4px 0;font-size:12px;}
 
 </style>
 </head>
@@ -392,6 +398,23 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
         Modifier le planning
       </button>
+      <div class="account-generator" id="account-generator" style="display:none;">
+        <div class="account-generator-title">🔐 Générateur de comptes staff</div>
+        <div class="account-generator-sub">Il reste <b id="generator-count">20</b> comptes prêts à distribuer. À chaque génération, tu personnalises le nom et le profil, puis le site donne automatiquement un identifiant et un PIN.</div>
+        <input class="mini-input" id="generator-name" maxlength="35" placeholder="Nom / pseudo du membre" style="margin-bottom:8px;">
+        <select class="role-select" id="generator-role" style="margin-bottom:8px;">
+          <option value="Scripteur">Scripteur</option>
+          <option value="Dev Builder">Dev Builder</option>
+        </select>
+        <button class="btn btn-primary" id="generate-account-btn" style="width:100%;">Générer un compte</button>
+        <div class="generated-account" id="generated-account">
+          <div class="generated-line"><b>Nom :</b> <span id="generated-name"></span></div>
+          <div class="generated-line"><b>Identifiant :</b> <span id="generated-id"></span></div>
+          <div class="generated-line"><b>Code PIN :</b> <span id="generated-pin"></span></div>
+          <div class="generated-line"><b>Profil :</b> <span id="generated-role"></span></div>
+          <div style="font-size:10.5px;color:var(--text-2);margin-top:8px;">⚠️ Note ces informations avant de fermer la page.</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1014,70 +1037,38 @@
   });
 
 
-  /* ---------- Team features + login local (GitHub Pages, sans Supabase) ---------- */
+  /* ---------- Local GitHub Pages accounts ---------- */
   const presenceList=document.getElementById("presence-list"), presenceDate=document.getElementById("presence-date");
   const announcementList=document.getElementById("announcement-list"), announcementForm=document.getElementById("announcement-form");
   const announcementTitle=document.getElementById("announcement-title"), announcementBody=document.getElementById("announcement-body"), announcementAdd=document.getElementById("announcement-add");
   const roleSelect=document.getElementById("role-select"), rolePerms=document.getElementById("role-perms");
   const loginOverlay=document.getElementById("login-overlay"), loginId=document.getElementById("login-id"), loginRole=document.getElementById("login-role"), loginPin=document.getElementById("login-pin"), loginError=document.getElementById("login-error"), loginSubmitBtn=document.getElementById("login-submit-btn"), logoutBtn=document.getElementById("logout-btn"), sessionChip=document.getElementById("session-chip");
-
-  const LOCAL_STAFF_ACCOUNTS={
-    azukashop:{member_id:"azukashop",pseudo:"@azukashop",role:"Chef de projet",pin:"482913"},
-    maxime2024:{member_id:"maxime2024",pseudo:"@maxime2024",role:"Scripteur",pin:"731604"},
-    ultra_z:{member_id:"ultra_z",pseudo:"@ultra_z.",role:"Scripteur",pin:"905271"},
-    itzalfx:{member_id:"itzalfx",pseudo:"@itzalfx",role:"Dev Builder",pin:"618435"}
-  };
-  const SHARED_PRESENCE_CODE="3579";
+  const accountGenerator=document.getElementById("account-generator"), generatorName=document.getElementById("generator-name"), generatorRole=document.getElementById("generator-role"), generateAccountBtn=document.getElementById("generate-account-btn"), generatorCount=document.getElementById("generator-count"), generatedAccount=document.getElementById("generated-account"), generatedName=document.getElementById("generated-name"), generatedId=document.getElementById("generated-id"), generatedPin=document.getElementById("generated-pin"), generatedRole=document.getElementById("generated-role");
+  const KEY="roblox_staff_generated_accounts_v4", TOTAL=20, PRES="staffPresenceLocal", ANN="staffAnnouncements", PRESCODE="3579";
+  const LOCAL_STAFF_ACCOUNTS={azukashop:{member_id:"azukashop",pseudo:"@azukashop",role:"Chef de projet",pin:"482913"},maxime2024:{member_id:"maxime2024",pseudo:"@maxime2024",role:"Scripteur",pin:"731604"},ultra_z:{member_id:"ultra_z",pseudo:"@ultra_z.",role:"Scripteur",pin:"905271"},itzalfx:{member_id:"itzalfx",pseudo:"@itzalfx",role:"Dev Builder",pin:"618435"}};
   let currentUser=null;
-  const defaultAnnouncements=[{title:"Bienvenue sur le planning",body:"Utilise cette zone pour les informations importantes de l’équipe.",date:new Date().toLocaleDateString("fr-FR")}];
-  const permissions={
-    "Chef de projet":["Modifier le planning","Gérer les candidatures","Publier des annonces","Voir les présences de toute l'équipe"],
-    "Scripteur":["Voir le planning","Voir les tâches de développement","Déclarer sa présence"],
-    "Dev Builder":["Voir le planning","Voir les tâches de construction","Déclarer sa présence"]
-  };
-  function todayIso(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-  function getPresence(){try{const a=JSON.parse(localStorage.getItem("staffPresenceLocal")||"{}");return a[todayIso()]||{};}catch(e){return {};}}
-  function savePresence(p){try{const a=JSON.parse(localStorage.getItem("staffPresenceLocal")||"{}");a[todayIso()]=p;localStorage.setItem("staffPresenceLocal",JSON.stringify(a));}catch(e){}}
-  function renderPresence(){
-    const p=getPresence(); presenceList.innerHTML="";
-    members.filter(m=>!m.vacant).forEach(m=>{
-      const row=document.createElement("div"), isMe=!!currentUser&&m.id===currentUser.member_id; row.className="presence-row"+(isMe?" presence-self":"");
-      const name=document.createElement("div");name.className="presence-name";name.textContent=m.pseudo;
-      const status=document.createElement("div");status.className="presence-status "+(p[m.id]?"present":"absent");status.textContent=p[m.id]?"PRÉSENT":"PAS ENCORE";
-      const action=document.createElement("button");action.className="presence-btn";action.textContent=p[m.id]?"Présent ✓":"Je suis présent";action.disabled=!isMe||!!p[m.id];action.title=isMe?"Entre le code commun pour confirmer ta présence":"Connecte-toi avec le compte de ce membre";
-      action.addEventListener("click",()=>{const code=prompt("Code commun de présence :");if(code===null)return;if(code.trim()!==SHARED_PRESENCE_CODE){alert("Code incorrect.");return;}const next=getPresence();next[m.id]=true;savePresence(next);renderPresence();});
-      row.append(name,status,action);presenceList.appendChild(row);
-    });
-    presenceDate.textContent="Aujourd’hui · "+new Date().toLocaleDateString("fr-FR")+" · enregistré sur cet appareil";
-  }
-  function getAnnouncements(){try{const raw=localStorage.getItem("staffAnnouncements");return raw?JSON.parse(raw):defaultAnnouncements.slice();}catch(e){return defaultAnnouncements.slice();}}
-  function saveAnnouncements(a){try{localStorage.setItem("staffAnnouncements",JSON.stringify(a));}catch(e){}}
-  function renderAnnouncements(){const list=getAnnouncements();announcementList.innerHTML="";list.slice().reverse().forEach(a=>{const el=document.createElement("div");el.className="announcement";el.innerHTML=`<div class="announcement-top"><span class="announcement-dot"></span><div class="announcement-title">${escapeHtml(a.title)}</div><div class="announcement-date">${escapeHtml(a.date||"")}</div></div><div class="announcement-body">${escapeHtml(a.body)}</div>`;announcementList.appendChild(el);});}
-  function renderPermissions(){rolePerms.innerHTML="";(permissions[roleSelect.value]||[]).forEach(p=>{const row=document.createElement("div");row.className="perm-row";row.innerHTML=`<span>${escapeHtml(p)}</span><span class="perm-tag">Autorisé</span>`;rolePerms.appendChild(row);});}
-  roleSelect.addEventListener("change",renderPermissions);
-  announcementAdd.addEventListener("click",()=>{const title=announcementTitle.value.trim(),body=announcementBody.value.trim();if(!title||!body)return;const a=getAnnouncements();a.push({title,body,date:new Date().toLocaleDateString("fr-FR")});saveAnnouncements(a);announcementTitle.value="";announcementBody.value="";renderAnnouncements();});
-  function updateFeatureAccess(){const role=currentUser?currentUser.role:"";announcementForm.style.display=(role==="Chef de projet"||role==="Responsable planning")?"grid":"none";if(adminOpenBtn)adminOpenBtn.style.display=role==="Chef de projet"?"inline-flex":"none";}
-  function showLoggedInUser(user){currentUser=user;canEdit=user.role==="Chef de projet";loginOverlay.style.display="none";gateOverlay.style.display="none";sessionChip.style.display="inline-flex";sessionChip.innerHTML=`👤 <b>${escapeHtml(user.pseudo)}</b> · ${escapeHtml(user.role)}`;logoutBtn.style.display="inline-flex";updateFeatureAccess();renderPresence();}
-  function clearSession(){currentUser=null;canEdit=false;try{sessionStorage.removeItem("staffSession");}catch(e){}loginId.value="";loginRole.value="";loginPin.value="";sessionChip.style.display="none";logoutBtn.style.display="none";loginOverlay.style.display="flex";updateFeatureAccess();renderPresence();}
-  function loginStaff(){
-    const identifier=(loginId.value||"").trim().toLowerCase();
-    const selectedRole=(loginRole.value||"").trim();
-    const pin=(loginPin.value||"").trim();
-    loginError.textContent="";
-    if(!identifier||!selectedRole||!pin){loginError.textContent="Choisis ton rôle et entre ton identifiant et ton code PIN.";return;}
-    const account=LOCAL_STAFF_ACCOUNTS[identifier];
-    if(!account||account.pin!==pin){loginError.textContent="Identifiant ou code PIN incorrect.";return;}
-    if(account.role!==selectedRole){loginError.textContent="Le rôle sélectionné ne correspond pas à ce compte.";return;}
-    const user={member_id:account.member_id,pseudo:account.pseudo,role:account.role};
-    try{sessionStorage.setItem("staffSession",JSON.stringify(user));}catch(e){}
-    showLoggedInUser(user);
-    loginPin.value="";
-  }
-  loginSubmitBtn.addEventListener("click",loginStaff);
-  [loginId,loginRole,loginPin].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter")loginStaff();}));
-  logoutBtn.addEventListener("click",clearSession);
-  function restoreStaffSession(){try{const saved=sessionStorage.getItem("staffSession");if(!saved)return false;const user=JSON.parse(saved);if(!user||!LOCAL_STAFF_ACCOUNTS[user.member_id])return false;showLoggedInUser(user);return true;}catch(e){return false;}}
-
+  const permissions={"Chef de projet":["Modifier le planning","Gérer les candidatures","Publier des annonces","Gérer les comptes staff","Voir les présences"],"Scripteur":["Voir le planning","Voir les tâches de développement","Déclarer sa présence"],"Dev":["Voir le planning","Voir les tâches de développement","Déclarer sa présence"],"Builder":["Voir le planning","Voir les tâches de construction","Déclarer sa présence"],"Dev Builder":["Voir le planning","Voir les tâches de développement et construction","Déclarer sa présence"]};
+  function generated(){try{let a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}}
+  function accounts(){let a={...LOCAL_STAFF_ACCOUNTS};generated().forEach(x=>a[x.id]={member_id:x.id,pseudo:x.pseudo,role:x.role,pin:x.pin});return a}
+  function today(){let d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+  function renderPermissions(){if(!rolePerms)return;rolePerms.innerHTML="";(permissions[roleSelect.value]||[]).forEach(x=>{let r=document.createElement("div");r.className="perm-row";r.innerHTML=`<span>${escapeHtml(x)}</span><span class="perm-tag">Autorisé</span>`;rolePerms.appendChild(r)})}
+  roleSelect&&roleSelect.addEventListener("change",renderPermissions);
+  function getAnnouncements(){try{let x=JSON.parse(localStorage.getItem(ANN)||"null");return x||[{title:"Bienvenue sur le planning",body:"Utilise cette zone pour les informations importantes de l’équipe.",date:new Date().toLocaleDateString("fr-FR")}]}catch(e){return[]}}
+  function renderAnnouncements(){if(!announcementList)return;announcementList.innerHTML="";getAnnouncements().slice().reverse().forEach(x=>{let e=document.createElement("div");e.className="announcement";e.innerHTML=`<div class="announcement-top"><span class="announcement-dot"></span><div class="announcement-title">${escapeHtml(x.title)}</div><div class="announcement-date">${escapeHtml(x.date||"")}</div></div><div class="announcement-body">${escapeHtml(x.body)}</div>`;announcementList.appendChild(e)})}
+  announcementAdd&&announcementAdd.addEventListener("click",()=>{let t=announcementTitle.value.trim(),b=announcementBody.value.trim();if(!t||!b)return;let a=getAnnouncements();a.push({title:t,body:b,date:new Date().toLocaleDateString("fr-FR")});localStorage.setItem(ANN,JSON.stringify(a));announcementTitle.value="";announcementBody.value="";renderAnnouncements()});
+  function renderPresence(){if(!presenceList)return;let all={};try{all=JSON.parse(localStorage.getItem(PRES)||"{}")}catch(e){}let p=all[today()]||{};presenceList.innerHTML="";members.filter(m=>!m.vacant).forEach(m=>{let me=currentUser&&currentUser.member_id===m.id,r=document.createElement("div");r.className="presence-row"+(me?" presence-self":"");r.innerHTML=`<div class="presence-name">${escapeHtml(m.pseudo)}</div><div class="presence-status ${p[m.id]?"present":"absent"}">${p[m.id]?"PRÉSENT":"PAS ENCORE"}</div>`;let btn=document.createElement("button");btn.className="presence-btn";btn.textContent=p[m.id]?"Présent ✓":"Je suis présent";btn.disabled=!me||!!p[m.id];btn.onclick=()=>{if(prompt("Code commun de présence :")!==PRESCODE){alert("Code incorrect.");return}p[m.id]=true;all[today()]=p;localStorage.setItem(PRES,JSON.stringify(all));renderPresence()};r.appendChild(btn);presenceList.appendChild(r)});if(presenceDate)presenceDate.textContent="Aujourd’hui · "+new Date().toLocaleDateString("fr-FR")+" · enregistré sur cet appareil"}
+  function updateGenerator(){let n=generated().length,left=Math.max(0,TOTAL-n);if(generatorCount)generatorCount.textContent=left;if(generateAccountBtn){generateAccountBtn.disabled=!left;generateAccountBtn.textContent=left?"Générer un compte":"Les 20 comptes sont utilisés"}}
+  function makeId(name,a){let base=name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,18)||"membre",id=base,i=2,all=accounts();while(all[id]||a.some(x=>x.id===id))id=base+i++;return id}
+  function makePin(a){let p;do p=String(Math.floor(100000+Math.random()*900000));while(a.some(x=>x.pin===p)||Object.values(LOCAL_STAFF_ACCOUNTS).some(x=>x.pin===p));return p}
+  function generateAccount(){let a=generated();if(a.length>=TOTAL)return;let name=generatorName.value.trim();if(!name){generatorName.focus();return}let role=generatorRole.value,id=makeId(name,a),pin=makePin(a),x={name,pseudo:name.startsWith("@")?name:"@"+name,id,pin,role,createdAt:Date.now()};a.push(x);localStorage.setItem(KEY,JSON.stringify(a));generatedName.textContent=x.pseudo;generatedId.textContent=x.id;generatedPin.textContent=x.pin;generatedRole.textContent=x.role;generatedAccount.style.display="block";generatorName.value="";updateGenerator()}
+  generateAccountBtn&&generateAccountBtn.addEventListener("click",generateAccount);
+  function access(){let founder=currentUser&&currentUser.role==="Chef de projet";if(announcementForm)announcementForm.style.display=founder?"grid":"none";if(adminOpenBtn)adminOpenBtn.style.display=founder?"inline-flex":"none";if(accountGenerator)accountGenerator.style.display=founder?"block":"none";updateGenerator()}
+  function loginStaff(){let id=loginId.value.trim().toLowerCase(),role=loginRole.value.trim(),pin=loginPin.value.trim(),a=accounts()[id];loginError.textContent="";if(!id||!role||!pin){loginError.textContent="Choisis ton rôle et entre ton identifiant et ton code PIN.";return}if(!a||a.pin!==pin){loginError.textContent="Identifiant ou code PIN incorrect.";return}if(a.role!==role){loginError.textContent="Le rôle sélectionné ne correspond pas à ce compte.";return}currentUser={member_id:a.member_id,pseudo:a.pseudo,role:a.role};sessionStorage.setItem("staffSession",JSON.stringify(currentUser));loginOverlay.style.display="none";gateOverlay.style.display="none";sessionChip.style.display="inline-flex";sessionChip.innerHTML=`👤 <b>${escapeHtml(a.pseudo)}</b> · ${escapeHtml(a.role)}`;logoutBtn.style.display="inline-flex";canEdit=a.role==="Chef de projet";access();renderPresence();loginPin.value=""}
+  function logout(){currentUser=null;canEdit=false;sessionStorage.removeItem("staffSession");sessionChip.style.display="none";logoutBtn.style.display="none";loginOverlay.style.display="flex";access();renderPresence()}
+  loginSubmitBtn.addEventListener("click",loginStaff);[loginId,loginRole,loginPin].forEach(e=>e.addEventListener("keydown",x=>{if(x.key==="Enter")loginStaff()}));logoutBtn.addEventListener("click",logout);
+  renderRoster();renderAnnouncements();renderPermissions();updateGenerator();renderPresence();
+  try{let u=JSON.parse(sessionStorage.getItem("staffSession")||"null"),a=u&&accounts()[u.member_id];if(a&&a.pin){currentUser={member_id:a.member_id,pseudo:a.pseudo,role:a.role};loginOverlay.style.display="none";sessionChip.style.display="inline-flex";sessionChip.innerHTML=`👤 <b>${escapeHtml(a.pseudo)}</b> · ${escapeHtml(a.role)}`;logoutBtn.style.display="inline-flex";canEdit=a.role==="Chef de projet"}}catch(e){}
+  access();renderPresence();
   /* Animations */
   document.addEventListener("click",(e)=>{
     const ripple=document.createElement("span");
